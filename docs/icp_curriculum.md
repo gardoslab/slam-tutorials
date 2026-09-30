@@ -1,0 +1,47 @@
+# 2D LiDAR SLAM Curriculum: From Basics to ICP
+
+This curriculum is designed to take you from the fundamental concepts of handling LiDAR data to implementing advanced scan matching algorithms like Iterative Closest Point (ICP). 
+
+## Module 1: Foundations of LiDAR and Data Representation
+**Goal:** Understand the shape of the data and how to manipulate it in 2D space.
+*   **1.1 Polar to Cartesian Math:** Converting raw `(distance, angle)` LiDAR readings into `(x, y)` points.
+*   **1.2 Synthetic Data Generation:** Creating controlled environments (walls, corners, boxes) in Python to test algorithms without real-world sensor noise.
+*   **1.3 Introduction to Transforms:** Mathematically translating and rotating arrays of 2D points using transformation matrices (Homogeneous coordinates).
+*   **1.4 The Occupancy Grid:** Building a simple 2D grid in Python (e.g., using a NumPy array) and mapping Cartesian points into grid cells.
+
+## Module 2: Basic Scan Matching (The Brute-Force Approach)
+**Goal:** Understand the core concept of alignment by minimizing an error function.
+*   **2.1 Translation-Only Brute Force:** (What we did in Step 1!) Searching a grid of possible X/Y movements to find the lowest error between two scans.
+*   **2.2 Adding Rotation:** Expanding the search grid to include heading/yaw ($\theta$). Understanding how the "curse of dimensionality" makes brute force computationally expensive as you add rotation.
+*   **2.3 Defining the Cost Function:** Formalizing the Sum of Squared Errors (SSE) or Mean Squared Error (MSE) to quantify "how well do these two scans align?"
+
+## Module 3: Introduction to Optimization
+**Goal:** Learn how to find the best alignment mathematically without checking every single possibility.
+*   **3.1 The Limits of Brute Force:** Discussing processing time and real-time requirements for robotics.
+*   **3.2 Gradient Descent Basics:** A conceptual overview of "walking down the hill" to find the minimum error.
+*   **3.3 Non-Linear Least Squares:** Introduction to the Gauss-Newton algorithm. 
+*   **3.4 Optimization for Scan Matching:** Applying Gauss-Newton to iteratively adjust the transformation `(dx, dy, dtheta)` to minimize the distance between a scan and a map.
+
+## Module 4: Iterative Closest Point (ICP) - Point-to-Point
+**Goal:** Implement the standard ICP algorithm to align two unknown point clouds.
+*   **4.1 The Correspondence Problem:** How do we know which point in Scan A matches which point in Scan B? 
+*   **4.2 Nearest Neighbor Search:** Using KD-Trees (via `scipy.spatial.KDTree`) to efficiently find the closest points between two scans.
+*   **4.3 Singular Value Decomposition (SVD):** The magic math! Using SVD to calculate the optimal rotation and translation matrix in a single closed-form step *once correspondences are known*.
+*   **4.4 The ICP Loop:** 
+    1. Find Nearest Neighbors.
+    2. Compute best transform using SVD.
+    3. Apply transform to the incoming scan.
+    4. Repeat until the error converges (stops changing).
+
+## Module 5: Advanced ICP - Point-to-Line 
+**Goal:** Solve common failure cases in standard ICP, such as sliding along featureless corridors.
+*   **5.1 The "Corridor Problem":** Why point-to-point ICP fails when looking at a flat wall (it can slide the scan sideways without changing the error).
+*   **5.2 Estimating Surface Normals:** Calculating the perpendicular direction (normal) of the walls in the reference scan or map.
+*   **5.3 Point-to-Line Metric:** Changing the error function to measure the distance from a point to the *surface plane* of the target, rather than a specific target point.
+*   **5.4 Solving Point-to-Line ICP:** Implementing the optimization loop for the new error metric.
+
+## Module 6: Putting it into SLAM
+**Goal:** Integrate the scan matcher into a continuous mapping loop.
+*   **6.1 Scan-to-Map Matching:** Instead of matching Scan $t$ to Scan $t-1$, match Scan $t$ against the global Occupancy Grid to eliminate cumulative drift.
+*   **6.2 Probabilistic Map Updating:** Using Bayes' theorem or log-odds to update the occupancy probabilities of grid cells as new, aligned scans come in.
+*   **6.3 Drift and Loop Closure:** A conceptual overview of why drift still happens eventually, and how recognizing a previously visited place (loop closure) pulls the whole map back into alignment using graph optimization.
